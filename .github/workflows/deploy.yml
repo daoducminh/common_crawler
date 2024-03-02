@@ -1,0 +1,32 @@
+name: zyte-deployment
+run-name: Deploy to Zyte
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install shub
+        run: |
+          pip install shub
+
+      - name: Configure API KEY
+        run: |
+          echo "apikeys:\n  default: ${{ secrets.ZYTE_API_KEY }}" >> ~/.scrapinghub.yml
+
+      - name: Deploy to Zyte
+        run: |
+          shub deploy
