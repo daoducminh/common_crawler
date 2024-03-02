@@ -36,7 +36,7 @@ class CockroachDBPipeline:
         pass
 
     def open_spider(self, spider: Spider):
-        settings = spider.settings.getdict()
+        settings = spider.settings.copy_to_dict()
         db_host = settings.get("DB_HOST")
         db_port = settings.get("DB_PORT")
         db_user = settings.get("DB_USER")
