@@ -21,11 +21,11 @@ jobs:
 
       - name: Install shub
         run: |
-          pip install shub
+          pip install shub -U --quiet --no-cache-dir
 
       - name: Configure API KEY
         run: |
-          echo "apikeys:\n  default: ${{ secrets.ZYTE_API_KEY }}" >> ~/.scrapinghub.yml
+          echo "${{ secrets.ZYTE_API_KEY }}" | shub login
 
       - name: Deploy to Zyte
         run: |
