@@ -1,93 +1,112 @@
-# -*- coding: utf-8 -*-
+import json
+import os
 
 import pendulum
 from scrapy import Request, Spider
 from scrapy.http.response import Response
-from sqlalchemy import create_engine, String, Integer, TIMESTAMP
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 
-SOURCE = "hhpc"
-BASE_URL = "https://hoanghapc.vn"
-CATEGORIES = [
-    "pc-workstation",
-    "hhpc-workstation-render-edit-video",
-    "pc-dep",
-    "pc-gaming",
-]
+from common_crawler.utils.discord import DiscordWebhook
+
+CATEGORIES = ["1", "284", "27", "93", "168", "2", "3", "6", "166", "5"]
+BASE_URL = "https://hoanghapc.vn/ajax/get_json.php?action=product&action_type=product-list&category={category_id}&sort=order&show={show}&page={page}"
 
 
-class Base(DeclarativeBase):
-    pass
-
-
-class ItemPrice(Base):
-    __tablename__ = "f_price"
-
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    name: Mapped[str] = mapped_column(String)
-    price: Mapped[int] = mapped_column(Integer)
-    source: Mapped[str] = mapped_column(String)
-    category: Mapped[str] = mapped_column(String)
-    timestamp: Mapped[pendulum.datetime] = mapped_column(TIMESTAMP("Asia/Ho_Chi_Minh"))
-
-
-class CockroachDBPipeline:
-    def __init__(self) -> None:
-        pass
-
-    def open_spider(self, spider: Spider):
-        settings = spider.settings.getdict()
-        db_host = settings.get("DB_HOST")
-        db_port = settings.get("DB_PORT")
-        db_user = settings.get("DB_USER")
-        db_password = settings.get("DB_PASSWORD")
-        db_name = settings.get("DB_NAME")
-
-        self.engine = create_engine(
-            f"cockroachdb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-        )
-        self.session = Session(self.engine)
-
-    def close_spider(self, spider):
-        self.session.close()
-
-    def process_item(self, item, spider: Spider):
-        self.session.add(ItemPrice(**item))
-        self.session.commit()
-        return item
-
-
-class HHPC(Spider):
-    name = SOURCE
+class HHPCSpider(Spider):
+    name = "hhpc"
 
     custom_settings = {
         "LOG_LEVEL": "INFO",
         "ITEM_PIPELINES": {
-            "common_crawler.spiders.hhpc.CockroachDBPipeline": 300,
+            "common_crawler.spiders.pc.pipeline.CockroachDBPipeline": 300,
         },
+        "DOWNLOAD_DELAY": 1,
+        "CONCURRENT_REQUESTS": 2,
     }
 
-    def start_requests(self):
-        for category in CATEGORIES:
-            yield Request(f"{BASE_URL}/{category}", self.parse_product_page)
+    def __init__(self, token=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.token = token
+        self.items_per_page = 30
+        self.headers = {"authorization": f"Basic {self.token}" if self.token else ""}
+        self.item_count = 0
 
-    def parse_product_page(self, response: Response):
-        for page in response.css(".paging a::attr(href)").getall():
-            next_url = response.urljoin(page)
-            yield Request(next_url, self.parse_product_page)
+    async def start(self):
+        if not self.token:
+            self.logger.warning("No token provided. Please provide via '-a token=...'")
 
-        for p in response.css(".p-container .p-item"):
-            try:
-                price_str = p.css(".p-price::text").get()
-                price = int(price_str.replace("đ", "").replace(".", "").strip())
+        for category_id in CATEGORIES:
+            url = BASE_URL.format(
+                category_id=category_id, show=self.items_per_page, page=1
+            )
+            yield Request(
+                url,
+                headers=self.headers,
+                callback=self.parse_page,
+                meta={"category_id": category_id, "page": 1},
+            )
 
-                yield {
-                    "id": p.css(".p-name::attr(href)").get().split("/")[-1],
-                    "name": p.css(".p-name h3::text").get().strip(),
-                    "price": price,
-                    "source": SOURCE,
-                    "category": response.css(".page-title::text").get().strip(),
-                    "timestamp": pendulum.now(tz="Asia/Ho_Chi_Minh"),
-                }
-            except Exception as e:
-                self.logger.error(e)
+    async def parse_page(self, response: Response):
+        try:
+            data = json.loads(response.text)
+        except json.JSONDecodeError:
+            self.logger.error("Failed to parse JSON response")
+            return
+
+        category_id = response.meta.get("category_id")
+        current_page = response.meta.get("page")
+        timestamp = pendulum.now(tz="Asia/Ho_Chi_Minh")
+
+        items = data.get("list", [])
+        self.item_count += len(items)
+        for item in items:
+            product_id = item.get("productId")
+            if not product_id:
+                continue
+
+            yield {
+                "id": str(product_id),
+                "name": item.get("productName"),
+                "price": item.get("price"),
+                "source": self.name,
+                "category": str(category_id),
+                "timestamp": timestamp,
+                "ingest_date": timestamp.date(),
+            }
+
+        # If it's the first page, calculate total pages and yield requests for the rest
+        if current_page == 1:
+            total = data.get("total", 0)
+            total_pages = (total + self.items_per_page - 1) // self.items_per_page
+
+            for p in range(2, total_pages + 1):
+                url = BASE_URL.format(
+                    category_id=category_id, show=self.items_per_page, page=p
+                )
+                yield Request(
+                    url,
+                    headers=self.headers,
+                    callback=self.parse_page,
+                    meta={"category_id": category_id, "page": p},
+                )
+
+    async def closed(self, reason):
+        if self.item_count == 0:
+            settings = self.settings.copy_to_dict()
+            webhook_url = settings.get("DISCORD_WEBHOOK_URL")
+
+            if os.getenv("ENV") == "dev":
+                webhook_url = os.getenv("DISCORD_WEBHOOK_URL") or webhook_url
+
+            if webhook_url:
+                self.logger.info("No items extracted, sending Discord notification")
+                discord = DiscordWebhook(webhook_url)
+                now = pendulum.now(tz="Asia/Ho_Chi_Minh")
+                current_date = now.to_date_string()
+                current_time = now.to_time_string()
+                await discord.send(
+                    f"⚠️ [{current_date}] [{self.name}] finished with 0 items extracted at {current_time}."
+                )
+            else:
+                self.logger.warning(
+                    "No items extracted and DISCORD_WEBHOOK_URL not configured"
+                )

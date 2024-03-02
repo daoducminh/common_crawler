@@ -1,0 +1,38 @@
+name: zyte-deployment
+run-name: Deploy to Zyte
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: wget -qO- https://astral.sh/uv/install.sh | sh
+      
+      - name: Export to requirements.txt
+        run: uv export --format requirements-txt > requirements.txt
+
+      - name: Install shub
+        run: |
+          pip install shub -U --quiet --no-cache-dir
+      
+      - name: Configure API KEY
+        run: |
+          echo "${{ secrets.ZYTE_API_KEY }}" | shub login
+
+      - name: Deploy to Zyte
+        run: |
+          shub deploy
