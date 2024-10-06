@@ -83,9 +83,9 @@ class CoreKeeperPipeline:
         self.client.close()
 
     def process_item(self, item: CoreKeeperItem, spider: Spider):
-        if item.type:
+        if item.get("type"):
             self.db[self.collection_name].update_one(
-                {"name": item.name},
+                {"name": item["name"]},
                 {"$set": dict(item)},
                 upsert=True,
             )
