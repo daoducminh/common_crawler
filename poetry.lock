@@ -467,6 +467,7 @@ files = [
 
 [package.dependencies]
 setuptools = ">=61.0"
+tomli = {version = "*", markers = "python_version < \"3.11\""}
 
 [package.extras]
 scripts = ["click (>=6.0)"]
@@ -1057,6 +1058,20 @@ files = [
 six = ">=1.5"
 
 [[package]]
+name = "python-dotenv"
+version = "1.0.1"
+description = "Read key-value pairs from a .env file and set them as environment variables"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "python-dotenv-1.0.1.tar.gz", hash = "sha256:e324ee90a023d808f1959c46bcbc04446a10ced277783dc6ee09987c37ec10ca"},
+    {file = "python_dotenv-1.0.1-py3-none-any.whl", hash = "sha256:f7b63ef50f1b690dddf550d03497b66d609393b40b564ed0d674909a68ebf16a"},
+]
+
+[package.extras]
+cli = ["click (>=5.0)"]
+
+[[package]]
 name = "queuelib"
 version = "1.7.0"
 description = "Collection of persistent (disk-based) and non-persistent (memory-based) queues"
@@ -1312,6 +1327,17 @@ release = ["build", "twine"]
 testing = ["black", "mypy", "pytest", "pytest-gitignore", "pytest-mock", "responses", "ruff", "syrupy", "tox", "types-filelock", "types-requests"]
 
 [[package]]
+name = "tomli"
+version = "2.0.2"
+description = "A lil' TOML parser"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "tomli-2.0.2-py3-none-any.whl", hash = "sha256:2ebe24485c53d303f690b0ec092806a085f07af5a5aa1464f3931eec36caaa38"},
+    {file = "tomli-2.0.2.tar.gz", hash = "sha256:d46d457a85337051c36524bc5349dd91b1877838e2979ac5ced3e710ed8a60ed"},
+]
+
+[[package]]
 name = "twisted"
 version = "24.7.0"
 description = "An asynchronous networking framework written in Python"
@@ -1449,5 +1475,5 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.12"
-content-hash = "e4a0c76b6922b252e2c9280199d8c25de8d3e536e2d1689872c9b23e046db867"
+python-versions = "^3.10"
+content-hash = "d46e4a435e02debc41f07dfac76bd0f06db523610aba1cd8cdc2529dd5658094"

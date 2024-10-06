@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import logging
 import os
 from itemloaders import ItemLoader
@@ -6,6 +7,10 @@ from itemloaders.processors import Join, MapCompose, Identity, TakeFirst
 from scrapy import Field, Item, Request, Spider
 from scrapy.http.response import Response
 import pymongo
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 ACTIVE_BOX = "section[contains(@class,'wds-tabber')]/div[@class='wds-tab__content wds-is-current']/section"
 
@@ -96,17 +101,17 @@ class CoreKeeperSpider(Spider):
     }
 
     def parse(self, response: Response):
-        # links = response.css('a[href^="/wiki"]::attr(href)').getall()
+        links = response.css('a[href^="/wiki"]::attr(href)').getall()
 
-        # for link in links:
-        #     clean_path = link
+        for link in links:
+            clean_path = link
 
-        #     try:
-        #         clean_path = link[: link.index("?")]
-        #     except Exception as e:
-        #         pass
+            try:
+                clean_path = link[: link.index("?")]
+            except Exception as e:
+                pass
 
-        #     yield Request(response.urljoin(clean_path), callback=self.parse)
+            yield Request(response.urljoin(clean_path), callback=self.parse)
 
         info_boxes = response.css(".portable-infobox")
 
