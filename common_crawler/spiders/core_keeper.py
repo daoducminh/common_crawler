@@ -83,7 +83,13 @@ class CoreKeeperPipeline:
         self.client.close()
 
     def process_item(self, item: CoreKeeperItem, spider: Spider):
-        self.db[self.collection_name].insert_one(dict(item))
+        if item.type:
+            self.db[self.collection_name].update_one(
+                {"name": item.name},
+                {"$set": dict(item)},
+                upsert=True,
+            )
+
         return item
 
 
@@ -94,7 +100,8 @@ class CoreKeeperSpider(Spider):
 
     custom_settings = {
         "LOG_LEVEL": logging.INFO,
-        "CONCURRENT_REQUESTS": 1,
+        "LOG_FILE": "logs/core_keeper.log",
+        # "CONCURRENT_REQUESTS": 4,
         "ITEM_PIPELINES": {
             "common_crawler.spiders.core_keeper.CoreKeeperPipeline": 300,
         },
