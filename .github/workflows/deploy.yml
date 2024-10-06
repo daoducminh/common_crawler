@@ -4,7 +4,7 @@ run-name: Deploy to Zyte
 on:
   push:
     branches:
-      - main
+      - zyte
 
 jobs:
   deploy:
@@ -19,10 +19,18 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Install poetry
+        run: |
+          pip install poetry -U --quiet --no-cache-dir
+      
+      - name: Export to requirements.txt
+        run: |
+          poetry export -f requirements.txt --output requirements.txt --without-hashes
+
       - name: Install shub
         run: |
           pip install shub -U --quiet --no-cache-dir
-
+      
       - name: Configure API KEY
         run: |
           echo "${{ secrets.ZYTE_API_KEY }}" | shub login
