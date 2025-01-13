@@ -8,7 +8,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 
 SOURCE = "hhpc"
 BASE_URL = "https://hoanghapc.vn"
-CATEGORIES = [
+PC_CATEGORIES = [
     "pc-workstation",
     "hhpc-workstation-render-edit-video",
     "pc-dep",
@@ -68,7 +68,7 @@ class HHPC(Spider):
     }
 
     def start_requests(self):
-        for category in CATEGORIES:
+        for category in PC_CATEGORIES:
             yield Request(f"{BASE_URL}/{category}", self.parse_product_page)
 
     def parse_product_page(self, response: Response):

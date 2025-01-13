@@ -4,7 +4,7 @@ run-name: Deploy to Zyte
 on:
   push:
     branches:
-      - zyte
+      - main
 
 jobs:
   deploy:
