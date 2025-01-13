@@ -13,6 +13,14 @@ PC_CATEGORIES = [
     "hhpc-workstation-render-edit-video",
     "pc-dep",
     "pc-gaming",
+    "machine-learning-ai-tensorflow",
+    "linh-kien-may-tinh",
+    "may-tinh-van-phong",
+    "hdd-ssd-nas",
+    "tan-nhiet-cooling",
+    "thiet-bi-mang",
+    "gaming-gear",
+    "man-hinh-may-tinh",
 ]
 
 
