@@ -21,10 +21,11 @@ jobs:
 
       - name: Install poetry
         run: |
-          pip install poetry -U --quiet --no-cache-dir
+          pipx install poetry
       
       - name: Export to requirements.txt
         run: |
+          pipx inject poetry poetry-plugin-export
           poetry export -f requirements.txt --output requirements.txt --without-hashes
 
       - name: Install shub
