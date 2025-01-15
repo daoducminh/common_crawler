@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-
+from datetime import date
 import pendulum
 from scrapy import Request, Spider
 from scrapy.http.response import Response
-from sqlalchemy import create_engine, String, Integer, TIMESTAMP
+from sqlalchemy import create_engine, String, Integer, TIMESTAMP, Date
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 
 SOURCE = "hhpc"
@@ -37,6 +37,7 @@ class ItemPrice(Base):
     source: Mapped[str] = mapped_column(String)
     category: Mapped[str] = mapped_column(String)
     timestamp: Mapped[pendulum.datetime] = mapped_column(TIMESTAMP("Asia/Ho_Chi_Minh"))
+    current_date: Mapped[date] = mapped_column(Date)
 
 
 class CockroachDBPipeline:
@@ -80,6 +81,7 @@ class HHPC(Spider):
             yield Request(f"{BASE_URL}/{category}", self.parse_product_page)
 
     def parse_product_page(self, response: Response):
+        timestamp: pendulum.DateTime = pendulum.now(tz="Asia/Ho_Chi_Minh")
         for page in response.css(".paging a::attr(href)").getall():
             next_url = response.urljoin(page)
             yield Request(next_url, self.parse_product_page)
@@ -95,7 +97,8 @@ class HHPC(Spider):
                     "price": price,
                     "source": SOURCE,
                     "category": response.css(".page-title::text").get().strip(),
-                    "timestamp": pendulum.now(tz="Asia/Ho_Chi_Minh"),
+                    "timestamp": timestamp,
+                    "current_date": timestamp.date(),
                 }
             except Exception as e:
                 self.logger.error(e)
