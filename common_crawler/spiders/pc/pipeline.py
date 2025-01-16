@@ -12,22 +12,20 @@ class CockroachDBPipeline:
         pass
 
     def open_spider(self, spider: Spider):
-        env = os.getenv("ENV")
-        spider.logger.info(f"ENV: {env}")
+        settings = spider.settings.copy_to_dict()
+        db_host = settings.get("DB_HOST")
+        db_port = settings.get("DB_PORT")
+        db_user = settings.get("DB_USER")
+        db_password = settings.get("DB_PASSWORD")
+        db_name = settings.get("DB_NAME")
 
+        env = os.getenv("ENV")
         if env == "dev":
             db_host = os.getenv("DB_HOST")
             db_port = os.getenv("DB_PORT")
             db_user = os.getenv("DB_USER")
             db_password = os.getenv("DB_PASSWORD")
             db_name = os.getenv("DB_NAME")
-        else:
-            settings = spider.settings.copy_to_dict()
-            db_host = settings.get("DB_HOST")
-            db_port = settings.get("DB_PORT")
-            db_user = settings.get("DB_USER")
-            db_password = settings.get("DB_PASSWORD")
-            db_name = settings.get("DB_NAME")
 
         self.engine = create_engine(
             f"cockroachdb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
