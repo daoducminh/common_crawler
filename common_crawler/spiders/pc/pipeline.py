@@ -27,6 +27,9 @@ class CockroachDBPipeline:
             db_password = os.getenv("DB_PASSWORD")
             db_name = os.getenv("DB_NAME")
 
+        spider.logger.info(
+            f"Connecting to CockroachDB at {db_host}:{db_port}/{db_name}"
+        )
         self.engine = create_engine(
             f"cockroachdb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
         )
