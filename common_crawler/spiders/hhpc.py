@@ -5,6 +5,7 @@ from scrapy import Request, Spider
 from scrapy.http.response import Response
 from sqlalchemy import create_engine, String, Integer, TIMESTAMP, Date
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
+import os
 
 SOURCE = "hhpc"
 BASE_URL = "https://hoanghapc.vn"
@@ -37,7 +38,7 @@ class ItemPrice(Base):
     source: Mapped[str] = mapped_column(String)
     category: Mapped[str] = mapped_column(String)
     timestamp: Mapped[pendulum.datetime] = mapped_column(TIMESTAMP("Asia/Ho_Chi_Minh"))
-    current_date: Mapped[date] = mapped_column(Date)
+    created_at: Mapped[date] = mapped_column(Date)
 
 
 class CockroachDBPipeline:
@@ -51,6 +52,11 @@ class CockroachDBPipeline:
         db_user = settings.get("DB_USER")
         db_password = settings.get("DB_PASSWORD")
         db_name = settings.get("DB_NAME")
+        # db_host = os.environ.get("DB_HOST")
+        # db_port = os.environ.get("DB_PORT")
+        # db_user = os.environ.get("DB_USER")
+        # db_password = os.environ.get("DB_PASSWORD")
+        # db_name = os.environ.get("DB_NAME")
 
         self.engine = create_engine(
             f"cockroachdb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
@@ -58,11 +64,15 @@ class CockroachDBPipeline:
         self.session = Session(self.engine)
 
     def close_spider(self, spider):
+        self.session.commit()
         self.session.close()
+        self.engine.dispose()
 
     def process_item(self, item, spider: Spider):
-        self.session.add(ItemPrice(**item))
-        self.session.commit()
+        data = ItemPrice(**item)
+
+        self.session.add(data)
+        # self.session.commit()
         return item
 
 
@@ -98,7 +108,7 @@ class HHPC(Spider):
                     "source": SOURCE,
                     "category": response.css(".page-title::text").get().strip(),
                     "timestamp": timestamp,
-                    "current_date": timestamp.date(),
+                    "created_at": timestamp.date(),
                 }
             except Exception as e:
                 self.logger.error(e)
