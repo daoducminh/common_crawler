@@ -13,6 +13,7 @@ class CockroachDBPipeline:
 
     def open_spider(self, spider: Spider):
         env = os.getenv("ENV")
+        spider.logger.info(f"ENV: {env}")
 
         if env == "dev":
             db_host = os.getenv("DB_HOST")
