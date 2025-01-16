@@ -49,5 +49,7 @@ class PCBaseSpider(Spider):
                     "timestamp": timestamp,
                     "ingest_date": timestamp.date(),
                 }
+            except ValueError:
+                pass
             except Exception as e:
                 self.logger.error(e)
