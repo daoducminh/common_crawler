@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
-from datetime import date
+
+import os
+
 import pendulum
 from scrapy import Request, Spider
 from scrapy.http.response import Response
-from sqlalchemy import create_engine, String, Integer, TIMESTAMP, Date
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
-import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+
+from common_crawler.spiders.pc.model import ItemPrice
 
 SOURCE = "hhpc"
 BASE_URL = "https://hoanghapc.vn"
@@ -23,22 +26,6 @@ PC_CATEGORIES = [
     "gaming-gear",
     "man-hinh-may-tinh",
 ]
-
-
-class Base(DeclarativeBase):
-    pass
-
-
-class ItemPrice(Base):
-    __tablename__ = "f_price"
-
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    name: Mapped[str] = mapped_column(String)
-    price: Mapped[int] = mapped_column(Integer)
-    source: Mapped[str] = mapped_column(String)
-    category: Mapped[str] = mapped_column(String)
-    timestamp: Mapped[pendulum.datetime] = mapped_column(TIMESTAMP("Asia/Ho_Chi_Minh"))
-    created_at: Mapped[date] = mapped_column(Date)
 
 
 class CockroachDBPipeline:
@@ -108,7 +95,7 @@ class HHPC(Spider):
                     "source": SOURCE,
                     "category": response.css(".page-title::text").get().strip(),
                     "timestamp": timestamp,
-                    "created_at": timestamp.date(),
+                    "ingest_date": timestamp.date(),
                 }
             except Exception as e:
                 self.logger.error(e)
