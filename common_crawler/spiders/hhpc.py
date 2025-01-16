@@ -8,7 +8,7 @@ from scrapy.http.response import Response
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from common_crawler.spiders.pc.model import ItemPrice
+from .pc.model import ItemPrice
 
 SOURCE = "hhpc"
 BASE_URL = "https://hoanghapc.vn"
