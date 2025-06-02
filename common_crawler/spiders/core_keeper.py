@@ -114,7 +114,7 @@ class CoreKeeperSpider(Spider):
             try:
                 clean_path = link[: link.index("?")]
             except Exception as e:
-                pass
+                self.logger.error(e)
 
             yield Request(response.urljoin(clean_path), callback=self.parse)
 
