@@ -1,13 +1,23 @@
-PHONE_PAGE_LIMIT = 20
-TABLE_PAGE_LIMIT = 10
-PAGE_SIZE = 20
+# Phones
 PHONE_CATE_ID = "3"
-TABLET_CATE_ID = "4"
 F_PHONE_CATE_ID = 1
-F_TABLET_CATE_ID = 2
-F_WATCH_ID = 3
+PHONE_PAGE_LIMIT = 20
 
+# Tablets
+TABLET_CATE_ID = "4"
+F_TABLET_CATE_ID = 2
+TABLET_PAGE_LIMIT = 10
+
+# Watches
+WATCH_CATE_ID = "610"
+F_WATCH_CATE_ID = 3
+WATCH_PAGE_LIMIT = 10
+
+# Common
+QUERY_ENDPOINT = "https://api.cellphones.com.vn/v2/graphql/query"
+PAGE_SIZE = 20
 DEFAULT_TZ = "Asia/Ho_Chi_Minh"
+BASE_HEADERS = {"Content-Type": "application/json"}
 
 BASE_BODY = """query GetProductsByCateId {
     products(

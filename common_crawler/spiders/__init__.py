@@ -1,3 +1,3 @@
-from common_crawler.spiders.cellphones.mobile import CellphonesMobileSpider
+from common_crawler.spiders.cellphones.spider import CellphonesSpider
 
-__all__ = ["CellphonesMobileSpider"]
+__all__ = ["CellphonesSpider"]
