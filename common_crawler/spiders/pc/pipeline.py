@@ -17,7 +17,7 @@ class CockroachDBPipeline:
         db_port = settings.get("DB_PORT")
         db_user = settings.get("DB_USER")
         db_password = settings.get("DB_PASSWORD")
-        db_name = settings.get("DB_NAME")
+        db_name = "pc_price"
 
         env = os.getenv("ENV")
         if env == "dev":
@@ -25,7 +25,6 @@ class CockroachDBPipeline:
             db_port = os.getenv("DB_PORT")
             db_user = os.getenv("DB_USER")
             db_password = os.getenv("DB_PASSWORD")
-            db_name = os.getenv("DB_NAME")
 
         spider.logger.info(
             f"Connecting to CockroachDB at {db_host}:{db_port}/{db_name}"
