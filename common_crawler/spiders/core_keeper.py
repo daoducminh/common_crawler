@@ -9,7 +9,14 @@ from itemloaders.processors import Identity, Join, MapCompose, TakeFirst
 from scrapy import Field, Item, Request, Spider
 from scrapy.http.response import Response
 
-from common_crawler.utils.discord import DiscordWebhook
+from common_crawler.utils.discord import DiscordNotifier
+from common_crawler.constants.enums import (
+    APP_ENV,
+    MONGODB_URI,
+    TZ_HCM,
+    WARNING_DISCORD_WEBHOOK,
+    DB_NAME_CORE_KEEPER,
+)
 
 load_dotenv()
 
@@ -77,9 +84,9 @@ class CoreKeeperPipeline:
 
     def __init__(self, settings) -> None:
         self.collection_name = "item"
-        self.mongo_uri = settings.get("MONGODB_URI") or os.getenv("MONGODB_URI")
+        self.mongo_uri = settings.get(MONGODB_URI) or os.getenv(MONGODB_URI)
         self.client = pymongo.MongoClient(self.mongo_uri)
-        self.db = self.client["core_keeper"]
+        self.db = self.client[DB_NAME_CORE_KEEPER]
 
     def open_spider(self):
         pass
@@ -200,15 +207,15 @@ class CoreKeeperSpider(Spider):
     async def closed(self, reason):
         if self.item_count == 0:
             settings = self.settings.copy_to_dict()
-            webhook_url = settings.get("DISCORD_WEBHOOK_URL")
+            webhook_url = settings.get(WARNING_DISCORD_WEBHOOK)
 
-            if os.getenv("ENV") == "dev":
-                webhook_url = os.getenv("DISCORD_WEBHOOK_URL") or webhook_url
+            if os.getenv(APP_ENV) == "dev":
+                webhook_url = os.getenv(WARNING_DISCORD_WEBHOOK) or webhook_url
 
             if webhook_url:
                 self.logger.info("No items extracted, sending Discord notification")
-                discord = DiscordWebhook(webhook_url)
-                now = pendulum.now(tz="Asia/Ho_Chi_Minh")
+                discord = DiscordNotifier(webhook_url)
+                now = pendulum.now(tz=TZ_HCM)
                 current_date = now.to_date_string()
                 current_time = now.to_time_string()
                 await discord.send(
@@ -216,5 +223,5 @@ class CoreKeeperSpider(Spider):
                 )
             else:
                 self.logger.warning(
-                    "No items extracted and DISCORD_WEBHOOK_URL not configured"
+                    "No items extracted and WARNING_DISCORD_WEBHOOK not configured"
                 )
