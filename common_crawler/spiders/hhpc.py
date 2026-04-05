@@ -5,7 +5,8 @@ import pendulum
 from scrapy import Request, Spider
 from scrapy.http.response import Response
 
-from common_crawler.utils.discord import DiscordWebhook
+from common_crawler.utils.discord import DiscordNotifier
+from common_crawler.constants.enums import APP_ENV, WARNING_DISCORD_WEBHOOK, TZ_HCM
 
 CATEGORIES = ["1", "284", "27", "93", "168", "2", "3", "6", "166", "5"]
 BASE_URL = "https://hoanghapc.vn/ajax/get_json.php?action=product&action_type=product-list&category={category_id}&sort=order&show={show}&page={page}"
@@ -54,7 +55,7 @@ class HHPCSpider(Spider):
 
         category_id = response.meta.get("category_id")
         current_page = response.meta.get("page")
-        timestamp = pendulum.now(tz="Asia/Ho_Chi_Minh")
+        timestamp = pendulum.now(tz=TZ_HCM)
 
         items = data.get("list", [])
         self.item_count += len(items)
@@ -92,15 +93,15 @@ class HHPCSpider(Spider):
     async def closed(self, reason):
         if self.item_count == 0:
             settings = self.settings.copy_to_dict()
-            webhook_url = settings.get("DISCORD_WEBHOOK_URL")
+            webhook_url = settings.get(WARNING_DISCORD_WEBHOOK)
 
-            if os.getenv("ENV") == "dev":
-                webhook_url = os.getenv("DISCORD_WEBHOOK_URL") or webhook_url
+            if os.getenv(APP_ENV) == "dev":
+                webhook_url = os.getenv(WARNING_DISCORD_WEBHOOK) or webhook_url
 
             if webhook_url:
                 self.logger.info("No items extracted, sending Discord notification")
-                discord = DiscordWebhook(webhook_url)
-                now = pendulum.now(tz="Asia/Ho_Chi_Minh")
+                discord = DiscordNotifier(webhook_url)
+                now = pendulum.now(tz=TZ_HCM)
                 current_date = now.to_date_string()
                 current_time = now.to_time_string()
                 await discord.send(
@@ -108,5 +109,5 @@ class HHPCSpider(Spider):
                 )
             else:
                 self.logger.warning(
-                    "No items extracted and DISCORD_WEBHOOK_URL not configured"
+                    "No items extracted and WARNING_DISCORD_WEBHOOK not configured"
                 )
