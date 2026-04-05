@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DiscordWebhook:
+class DiscordNotifier:
     def __init__(self, url: str):
         self.url = url
 

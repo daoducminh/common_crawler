@@ -5,6 +5,7 @@ import pendulum
 from scrapy import Request, Spider
 from scrapy.http.response import Response
 
+from common_crawler.constants.enums import APP_ENV, TZ_HCM, WARNING_DISCORD_WEBHOOK
 from common_crawler.spiders.cellphones.constants import (
     BASE_BODY,
     BASE_HEADERS,
@@ -21,7 +22,7 @@ from common_crawler.spiders.cellphones.constants import (
     WATCH_CATE_ID,
     WATCH_PAGE_LIMIT,
 )
-from common_crawler.utils.discord import DiscordWebhook
+from common_crawler.utils.discord import DiscordNotifier
 
 
 def get_price(item):
@@ -196,15 +197,15 @@ class CellphonesSpider(Spider):
     async def closed(self, reason):
         if self.item_count == 0:
             settings = self.settings.copy_to_dict()
-            webhook_url = settings.get("DISCORD_WEBHOOK_URL")
+            webhook_url = settings.get(WARNING_DISCORD_WEBHOOK)
 
-            if os.getenv("ENV") == "dev":
-                webhook_url = os.getenv("DISCORD_WEBHOOK_URL") or webhook_url
+            if os.getenv(APP_ENV) == "dev":
+                webhook_url = os.getenv(WARNING_DISCORD_WEBHOOK) or webhook_url
 
             if webhook_url:
                 self.logger.info("No items extracted, sending Discord notification")
-                discord = DiscordWebhook(webhook_url)
-                now = pendulum.now(tz="Asia/Ho_Chi_Minh")
+                discord = DiscordNotifier(webhook_url)
+                now = pendulum.now(tz=TZ_HCM)
                 current_date = now.to_date_string()
                 current_time = now.to_time_string()
                 await discord.send(
@@ -212,5 +213,5 @@ class CellphonesSpider(Spider):
                 )
             else:
                 self.logger.warning(
-                    "No items extracted and DISCORD_WEBHOOK_URL not configured"
+                    "No items extracted and WARNING_DISCORD_WEBHOOK not configured"
                 )

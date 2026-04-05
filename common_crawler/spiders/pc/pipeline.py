@@ -5,6 +5,15 @@ from scrapy import Spider
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
+from common_crawler.constants.enums import (
+    APP_ENV,
+    DB_HOST,
+    DB_NAME_PC,
+    DB_PASSWORD,
+    DB_PORT,
+    DB_USER,
+)
+
 from .model import ItemPrice
 
 logger = logging.getLogger(__name__)
@@ -17,18 +26,18 @@ class CockroachDBPipeline:
         return cls(settings)
 
     def __init__(self, settings: dict) -> None:
-        db_host = settings.get("DB_HOST")
-        db_port = settings.get("DB_PORT")
-        db_user = settings.get("DB_USER")
-        db_password = settings.get("DB_PASSWORD")
-        db_name = "pc_price"
+        db_host = settings.get(DB_HOST)
+        db_port = settings.get(DB_PORT)
+        db_user = settings.get(DB_USER)
+        db_password = settings.get(DB_PASSWORD)
+        db_name = DB_NAME_PC
 
-        env = os.getenv("ENV")
+        env = os.getenv(APP_ENV)
         if env == "dev":
-            db_host = os.getenv("DB_HOST")
-            db_port = os.getenv("DB_PORT")
-            db_user = os.getenv("DB_USER")
-            db_password = os.getenv("DB_PASSWORD")
+            db_host = os.getenv(DB_HOST)
+            db_port = os.getenv(DB_PORT)
+            db_user = os.getenv(DB_USER)
+            db_password = os.getenv(DB_PASSWORD)
 
         self.engine = create_engine(
             f"cockroachdb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
