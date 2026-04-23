@@ -1,4 +1,5 @@
 requirements.txt
+*.html
 
 # VSCode
 .vscode
