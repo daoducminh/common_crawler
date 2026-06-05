@@ -530,14 +530,14 @@ class GoldGasPriceSpider(Spider):
 
     async def start(self):
         yield Request(config.gold_api_url, callback=self.parse_gold)
-        yield Request(config.gas_api_url, callback=self.parse_gas)
+        #yield Request(config.gas_api_url, callback=self.parse_gas)
         yield Request(config.gold_btmc_url, callback=self.parse_btmc)
-        yield Request(
-            config.gas_vn_url,
-            callback=self.parse_gas_vn,
-            meta={"dont_merge_cookies": False},
-            headers={"User-Agent": "Mozilla/5.0 (compatible; Scrapy/2.14)"},
-        )
+        #yield Request(
+        #    config.gas_vn_url,
+        #    callback=self.parse_gas_vn,
+        #    meta={"dont_merge_cookies": False},
+        #    headers={"User-Agent": "Mozilla/5.0 (compatible; Scrapy/2.14)"},
+        #)
 
     async def parse_gold(self, response):
         try:
@@ -712,9 +712,9 @@ class GoldGasPriceSpider(Spider):
     async def closed(self, reason):
         if (
             not self.gold_extracted
-            or not self.gas_extracted
+            # or not self.gas_extracted
             or not self.btmc_extracted
-            or not self.gas_vn_extracted
+            # or not self.gas_vn_extracted
         ):
             webhook_url = self.settings.get(WARNING_DISCORD_WEBHOOK) or os.getenv(
                 WARNING_DISCORD_WEBHOOK
@@ -724,12 +724,12 @@ class GoldGasPriceSpider(Spider):
                 failed = []
                 if not self.gold_extracted:
                     failed.append("Gold")
-                if not self.gas_extracted:
-                    failed.append("Gasoline")
+                # if not self.gas_extracted:
+                #     failed.append("Gasoline")
                 if not self.btmc_extracted:
                     failed.append("BTMC Gold")
-                if not self.gas_vn_extracted:
-                    failed.append("Gasoline VN")
+                # if not self.gas_vn_extracted:
+                #     failed.append("Gasoline VN")
 
                 now = pendulum.now(tz=TZ_HCM)
                 await discord.send(
