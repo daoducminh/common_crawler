@@ -1,0 +1,1 @@
+CREATE TABLE public.f_price (   id STRING NULL,   "timestamp" TIMESTAMPTZ NULL,   source STRING NULL,   name STRING NULL,   price INT8 NULL,   category STRING NULL,   rowid INT8 NOT VISIBLE NOT NULL DEFAULT unique_rowid(),   ingest_date DATE NULL,   CONSTRAINT f_price_pkey PRIMARY KEY (rowid ASC),   INDEX ingest_date_idx (ingest_date ASC) );
