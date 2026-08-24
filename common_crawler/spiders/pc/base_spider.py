@@ -65,13 +65,12 @@ class PCBaseSpider(Spider):
                 category = category_str.strip()
 
                 item_data = {
-                    "id": id,
-                    "name": name,
-                    "price": price,
                     "source": self.name,
+                    "product_id": f"{self.name}__{id}",
+                    "name": name,
                     "category": category,
-                    "timestamp": timestamp,
-                    "ingest_date": timestamp.date(),
+                    "price": price,
+                    "crawled_at": timestamp.date(),
                 }
                 self.item_count += 1
                 yield item_data

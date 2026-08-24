@@ -65,13 +65,12 @@ class HHPCSpider(Spider):
                 continue
 
             yield {
-                "id": str(product_id),
+                "source": self.name,
+                "product_id": f"{self.name}__{product_id}",
                 "name": item.get("productName"),
                 "price": item.get("price"),
-                "source": self.name,
                 "category": str(category_id),
-                "timestamp": timestamp,
-                "ingest_date": timestamp.date(),
+                "crawled_at": timestamp.date(),
             }
 
         # If it's the first page, calculate total pages and yield requests for the rest
