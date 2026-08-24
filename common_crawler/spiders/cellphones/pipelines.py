@@ -10,11 +10,7 @@ from w3lib.html import remove_tags
 
 from common_crawler.constants.enums import (
     APP_ENV,
-    DB_HOST,
-    DB_NAME_PC,
-    DB_PASSWORD,
-    DB_PORT,
-    DB_USER,
+    DATABASE_URL,
 )
 from common_crawler.spiders.cellphones.constants import DEFAULT_TZ, PHONE_CATE_ID
 from common_crawler.spiders.cellphones.models import ItemPrice
@@ -39,22 +35,13 @@ class CockroachDBPipeline:
         return cls(settings)
 
     def __init__(self, settings: dict) -> None:
-        db_host = settings.get(DB_HOST)
-        db_port = settings.get(DB_PORT)
-        db_user = settings.get(DB_USER)
-        db_password = settings.get(DB_PASSWORD)
-        db_name = DB_NAME_PC
+        database_url = settings.get(DATABASE_URL)
 
         env = os.getenv(APP_ENV)
         if env == "dev":
-            db_host = os.getenv(DB_HOST)
-            db_port = os.getenv(DB_PORT)
-            db_user = os.getenv(DB_USER)
-            db_password = os.getenv(DB_PASSWORD)
+            database_url = os.getenv(DATABASE_URL) or database_url
 
-        self.engine = create_engine(
-            f"cockroachdb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-        )
+        self.engine = create_engine(database_url)
         self.session = Session(self.engine)
 
     def open_spider(self):

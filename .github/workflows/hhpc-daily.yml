@@ -1,0 +1,40 @@
+name: hhpc-daily
+run-name: Daily HHPC price crawl
+
+on:
+  schedule:
+    # 09:00 ICT (UTC+7) every day
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: hhpc-daily
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    name: crawl hhpc
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        run: wget -qO- https://astral.sh/uv/install.sh | sh
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run hhpc spider
+        env:
+          ENV: dev
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          WARNING_DISCORD_WEBHOOK: ${{ secrets.WARNING_DISCORD_WEBHOOK }}
+          HHPC_TOKEN: ${{ secrets.HHPC_TOKEN }}
+        run: uv run scrapy crawl hhpc -a token="$HHPC_TOKEN"

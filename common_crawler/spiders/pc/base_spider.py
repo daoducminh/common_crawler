@@ -3,6 +3,7 @@ import os
 import pendulum
 from scrapy import Request, Spider
 from scrapy.http.response import Response
+from urllib.parse import urlparse
 
 from common_crawler.constants.enums import APP_ENV, TZ_HCM, WARNING_DISCORD_WEBHOOK
 from common_crawler.utils.discord import DiscordNotifier
@@ -52,7 +53,11 @@ class PCBaseSpider(Spider):
                 id_str = p.css(self.item_id_css).get()
                 if id_str is None:
                     continue
-                id = id_str.split("/")[-1].replace(".html", "")
+                # product slugs may contain literal "/", so take the full path
+                # and only strip a trailing ".html" (keeps ids stable vs legacy)
+                id = (
+                    urlparse(id_str).path.lstrip("/").removesuffix(".html")
+                )
 
                 name_str = p.css(self.item_name_css).get()
                 if name_str is None:
@@ -65,13 +70,12 @@ class PCBaseSpider(Spider):
                 category = category_str.strip()
 
                 item_data = {
-                    "id": id,
-                    "name": name,
-                    "price": price,
                     "source": self.name,
+                    "product_id": f"{self.name}__{id}",
+                    "name": name,
                     "category": category,
-                    "timestamp": timestamp,
-                    "ingest_date": timestamp.date(),
+                    "price": price,
+                    "crawled_at": timestamp.date(),
                 }
                 self.item_count += 1
                 yield item_data
