@@ -23,7 +23,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.14"
 
       - name: Install uv
         run: wget -qO- https://astral.sh/uv/install.sh | sh
@@ -40,5 +40,4 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           WARNING_DISCORD_WEBHOOK: ${{ secrets.WARNING_DISCORD_WEBHOOK }}
           HHPC_TOKEN: ${{ secrets.HHPC_TOKEN }}
-        run: |
-          uv run scrapy crawl hhpc -a token="$HHPC_TOKEN"
+        run: uv run scrapy crawl hhpc -a token="$HHPC_TOKEN"
