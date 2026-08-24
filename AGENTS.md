@@ -58,7 +58,9 @@ Pipeline reads scrapy settings named after these constants, falling back to OS e
 `ENV=dev` (local runs, GitHub Actions):
 
 - `ENV` – set to `dev` outside Zyte
-- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` – CockroachDB Cloud connection
+- `DATABASE_URL` – full CockroachDB Cloud connection string, e.g.
+  `cockroachdb://USER:PASSWORD@HOST:26257/pc_price?sslmode=verify-full`
+  (`sslrootcert=/path/ca.crt` optional; sslmode params pass through to psycopg2)
 - `WARNING_DISCORD_WEBHOOK` – zero-item alerts
 - HHPC auth token is a spider argument: `-a token=...` (GitHub secret `HHPC_TOKEN`)
 
@@ -67,7 +69,7 @@ Pipeline reads scrapy settings named after these constants, falling back to OS e
 ```bash
 uv sync                                        # install deps (Python 3.12)
 uv run scrapy list                             # list spiders
-ENV=dev DB_HOST=... DB_PORT=... DB_USER=... DB_PASSWORD=... \
+ENV=dev DATABASE_URL=cockroachdb://USER:PASSWORD@HOST:26257/pc_price?sslmode=verify-full \
   uv run scrapy crawl hhpc -a token=$HHPC_TOKEN   # run locally / in CI
 uv export --format requirements-txt > requirements.txt  # used by Zyte deploy
 ```
