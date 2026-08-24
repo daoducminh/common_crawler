@@ -1,19 +1,14 @@
 import logging
-import os
 import re
 
 import pendulum
 from scrapy import Spider
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from w3lib.html import remove_tags
 
-from common_crawler.constants.enums import (
-    APP_ENV,
-    DATABASE_URL,
-)
 from common_crawler.spiders.cellphones.constants import DEFAULT_TZ, PHONE_CATE_ID
 from common_crawler.spiders.cellphones.models import ItemPrice
+from common_crawler.utils.db import build_engine
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +30,7 @@ class CockroachDBPipeline:
         return cls(settings)
 
     def __init__(self, settings: dict) -> None:
-        database_url = settings.get(DATABASE_URL)
-
-        env = os.getenv(APP_ENV)
-        if env == "dev":
-            database_url = os.getenv(DATABASE_URL) or database_url
-
-        self.engine = create_engine(database_url)
+        self.engine = build_engine(settings)
         self.session = Session(self.engine)
 
     def open_spider(self):

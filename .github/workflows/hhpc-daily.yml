@@ -31,10 +31,14 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
+      - name: Install CockroachDB root cert
+        run: mkdir -p ~/.postgresql && cp certs/root.crt ~/.postgresql/root.crt
+
       - name: Run hhpc spider
         env:
           ENV: dev
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DB_CA_CERT: ${{ secrets.DB_CA_CERT }}
           WARNING_DISCORD_WEBHOOK: ${{ secrets.WARNING_DISCORD_WEBHOOK }}
           HHPC_TOKEN: ${{ secrets.HHPC_TOKEN }}
         run: uv run scrapy crawl hhpc -a token="$HHPC_TOKEN"

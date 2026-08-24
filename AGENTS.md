@@ -60,7 +60,11 @@ Pipeline reads scrapy settings named after these constants, falling back to OS e
 - `ENV` – set to `dev` outside Zyte
 - `DATABASE_URL` – full CockroachDB Cloud connection string, e.g.
   `cockroachdb://USER:PASSWORD@HOST:26257/pc_price?sslmode=verify-full`
-  (`sslrootcert=/path/ca.crt` optional; sslmode params pass through to psycopg2)
+- `DB_CA_CERT` – PEM contents of the CockroachDB CA bundle (`certs/root.crt` in repo);
+  written to a temp file and injected as `sslrootcert` when building the engine
+  (`common_crawler/utils/db.py`). This is the **recommended** way to provide the cert in CI.
+  Fallback: `certs/root.crt` (in repo) – ISRG Root X1/X2 CA bundle; CI workflows copy it to
+  `~/.postgresql/root.crt` (libpq's default under `verify-full`) before running spiders
 - `WARNING_DISCORD_WEBHOOK` – zero-item alerts
 - HHPC auth token is a spider argument: `-a token=...` (GitHub secret `HHPC_TOKEN`)
 

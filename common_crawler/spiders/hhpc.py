@@ -5,8 +5,8 @@ import pendulum
 from scrapy import Request, Spider
 from scrapy.http.response import Response
 
+from common_crawler.constants.enums import APP_ENV, TZ_HCM, WARNING_DISCORD_WEBHOOK
 from common_crawler.utils.discord import DiscordNotifier
-from common_crawler.constants.enums import APP_ENV, WARNING_DISCORD_WEBHOOK, TZ_HCM
 
 CATEGORIES = ["1", "284", "27", "93", "168", "2", "3", "6", "166", "5"]
 BASE_URL = "https://hoanghapc.vn/ajax/get_json.php?action=product&action_type=product-list&category={category_id}&sort=order&show={show}&page={page}"
@@ -27,6 +27,10 @@ class HHPCSpider(Spider):
     def __init__(self, token=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.token = token
+        env = os.getenv("ENV")
+        if env == "dev":
+            self.token = os.getenv("HHPC_TOKEN")
+
         self.items_per_page = 30
         self.headers = {"authorization": f"Basic {self.token}" if self.token else ""}
         self.item_count = 0

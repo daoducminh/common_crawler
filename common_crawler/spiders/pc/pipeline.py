@@ -1,15 +1,11 @@
 import logging
-import os
 
 from scrapy import Spider
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from common_crawler.constants.enums import (
-    APP_ENV,
-    DATABASE_URL,
-)
+from common_crawler.utils.db import build_engine
 
 from .model import StgPcPrice
 
@@ -23,13 +19,7 @@ class CockroachDBPipeline:
         return cls(settings)
 
     def __init__(self, settings: dict) -> None:
-        database_url = settings.get(DATABASE_URL)
-
-        env = os.getenv(APP_ENV)
-        if env == "dev":
-            database_url = os.getenv(DATABASE_URL) or database_url
-
-        self.engine = create_engine(database_url)
+        self.engine = build_engine(settings)
         self.session = Session(self.engine)
 
     def open_spider(self):
